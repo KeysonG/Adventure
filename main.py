@@ -16,62 +16,81 @@ def index():
     return template("adventure.html")
 
 
+
+def getUserFromDB(user_name):
+  return None
+
+def createANewUser():
+  return "1"
+
+def getQuestionFromDB(next_step = 1, adventure_id = 1):
+  try:
+      with connection.cursor() as cursor:
+        sql = "SELECT * FROM sql11157877.question_table AS q LEFT JOIN sql11157877.options_table AS o ON q.question_id = o.question_id WHERE q.question_id = {} AND q.adventure_id = {} ;".format(next_step,adventure_id)
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        return result
+  except Exception as e:
+    print(repr(e))
+  return None
+
+
+
 @route("/start", method="POST")
 def start():
-    username = request.POST.get("name")
+    user_name = request.POST.get("name")
     current_adv_id = request.POST.get("adventure_id")
 
-    try:
-        with connection.cursor() as cursor:
-            sql = "SELECT user_name FROM user_table WHERE user_name = '{}'".format(username)
-            cursor.execute(sql)
-        result = cursor.fetchall()
-        if not result:
-            sql = "INSERT user_name INTO user_table"
-            cursor.execute(sql)
-            return json.dumps(current_adv_id)
-        #return story()
+    nextStep = 1
+    user_id = "1"
+    currentUser = getUserFromDB(user_name)
+    if currentUser:
+      nextStep = currentUser["current_question"]
+      user_id = currentUser["user_id"]
+    else:
+      user_id = createANewUser()
+    question_text = "Choose Your Adventure"
+
+    options = [{"option_text":"Adventure 1","id":"1"},{"option_text":"Adventure 1","id":"1"},{"option_text":"Adventure 1","id":"1"},{"option_text":"Adventure 1","id":"1"}]
 
 
-    user_id = 0 #todo check if exists and if not create it
-    current_story_id = 0 #todo change
-    next_steps_results = [
-        #{"id": 1, "option_text": "I fight it"},
-        #{"id": 2, "option_text": "I give him 10 coins"},
-        #{"id": 3, "option_text": "I tell it that I just want to go home"},
-        #{"id": 4, "option_text": "I run away quickly"}
-        ]
-
-    #todo add the next step based on db
     return json.dumps({"user": user_id,
-                       "adventure": current_adv_id,
-                       "current": current_story_id,
-                       "text": "You meet a mysterious creature in the woods, what do you do?",
-                       "image": "troll.png",
-                       "options": next_steps_results
-                       })
+                   "adventure": current_adv_id,
+                   "current": "1",
+                   "text": question_text,
+                   "image": "choice.jpg",
+                   "options": options
+                   })
+
 
 
 @route("/story", method="POST")
 def story():
-    user_id = request.POST.get("user")
+    user_name = request.POST.get("name")
     current_adv_id = request.POST.get("adventure")
-    next_story_id = request.POST.get("next") #this is what the user chose - use it!
-    next_steps_results = [
-        {"id": 1, "option_text": "I run!"},
-        {"id": 2, "option_text": "I hide!"},
-        {"id": 3, "option_text": "I sleep!"},
-        {"id": 4, "option_text": "I fight!"}
-        ]
-    random.shuffle(next_steps_results) #todo change - used only for demonstration purpouses
 
-    #todo add the next step based on db
+    nextStep = 1
+    user_id = "1"
+    currentUser = getUserFromDB(user_name)
+    if currentUser:
+      nextStep = currentUser["current_question"]
+      user_id = currentUser["user_id"]
+    else:
+      user_id = createANewUser()
+    nextQuestion = getQuestionFromDB(nextStep, current_adv_id)
+    question_text = nextQuestion[0]["question_text"]
+    options = []
+    for r in nextQuestion:
+      options.append({"option_text":r["option_text"],"id":r["option_id"]})
+
+
     return json.dumps({"user": user_id,
-                       "adventure": current_adv_id,
-                       "text": "New scenario! What would you do?",
-                       "image": "choice.jpg",
-                       "options": next_steps_results
-                       })
+                   "adventure": current_adv_id,
+                   "current": "1",
+                   "text": question_text,
+                   "image": "troll.png",
+                   "options": options
+                   })
 
 @route('/js/<filename:re:.*\.js$>', method='GET')
 def javascripts(filename):
@@ -88,7 +107,7 @@ def images(filename):
     return static_file(filename, root='images')
 
 def main():
-    run(host='localhost', port=9000)
+    run(host='localhost', port=7000)
 
 if __name__ == '__main__':
     main()
