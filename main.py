@@ -1,6 +1,14 @@
 from bottle import route, run, template, static_file, request
 import random
 import json
+import pymysql
+
+connection = pymysql.connect(host = 'sql11.freesqldatabase.com',
+                             user = 'sql11157877',
+                             password = 'PzbGCtxc2e',
+                             db = 'sql11157877',
+                             charset = 'utf8',
+                             cursorclass = pymysql.cursors.DictCursor)
 
 
 @route("/", method="GET")
@@ -10,7 +18,7 @@ def index():
 
 @route("/start", method="POST")
 def start():
-    username = request.POST.get("name")
+    user_name = request.POST.get("name")
     current_adv_id = request.POST.get("adventure_id")
 
 
