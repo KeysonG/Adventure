@@ -18,17 +18,28 @@ def index():
 
 @route("/start", method="POST")
 def start():
-    user_name = request.POST.get("name")
+    username = request.POST.get("name")
     current_adv_id = request.POST.get("adventure_id")
+
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT user_name FROM user_table WHERE user_name = '{}'".format(username)
+            cursor.execute(sql)
+        result = cursor.fetchall()
+        if not result:
+            sql = "INSERT user_name INTO user_table"
+            cursor.execute(sql)
+            return json.dumps(current_adv_id)
+        #return story()
 
 
     user_id = 0 #todo check if exists and if not create it
     current_story_id = 0 #todo change
     next_steps_results = [
-        {"id": 1, "option_text": "I fight it"},
-        {"id": 2, "option_text": "I give him 10 coins"},
-        {"id": 3, "option_text": "I tell it that I just want to go home"},
-        {"id": 4, "option_text": "I run away quickly"}
+        #{"id": 1, "option_text": "I fight it"},
+        #{"id": 2, "option_text": "I give him 10 coins"},
+        #{"id": 3, "option_text": "I tell it that I just want to go home"},
+        #{"id": 4, "option_text": "I run away quickly"}
         ]
 
     #todo add the next step based on db
